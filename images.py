@@ -22,10 +22,10 @@ def HM(img, histo):
             acum_r[img[f][j]]+=1
 
     # calculo las dos acumuladas, la entrada r, la normal s
-    acum_r[0] /= len(img)*len(img[0])
+    acum_r[0] /= float(len(img)*len(img[0]))
     for i in range(1,L):
         # calculo las frecuencias relativas, obteniendo la distribucion
-        acum_r[i] /= len(img)*len(img[0])
+        acum_r[i] /= float(len(img)*len(img[0]))
         # acumulo
         acum_r[i] += acum_r[i-1]
         histo[i] += histo[i-1]

@@ -2,6 +2,7 @@ import sys
 import numpy as np
 import converter
 import images
+from matplotlib import pyplot as plt
 # AEPHE: Adaptative extended piecewise histogram equalisation
 
 # Funcion principal
@@ -76,7 +77,12 @@ def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=1./3.):
         histo_equ[i] = sum([ histo_weights_values[j][i] / total_weights[i] * histo_target[j][i]\
                 for j in range(0,N)])
     # 5 : Obtener el canal-I final, por HM
+    plt.subplot(1,2,1)
+    plt.imshow(np.divide(img_hsi[:,:,2],255), cmap='gray')
     img_hsi[:,:,2] = images.HM(img_hsi[:,:,2], histo_equ)
+    plt.subplot(1,2,2)
+    plt.imshow(img_hsi[:,:,2], cmap='gray')
+    plt.show()
 
     # 6 : Convertir denuevo a RGB
     img_rgb_equ = converter.HSI2RGB(img_hsi)
