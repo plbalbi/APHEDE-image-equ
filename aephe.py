@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import converter
 import images
@@ -58,14 +59,14 @@ def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=1./3.):
         # aca normalizo parts_histo[i]
         parts_histo[i] = np.divide(parts_histo[i],num_pixels)
         term_2 = np.multiply(alpha, parts_histo[i]) + np.multiply(beta, histo_unif)
-        histo_target[i] = np.dot(term1, term_2) # guardo el target histo
+        histo_target[i] = np.dot(term_1, term_2) # guardo el target histo
     # 4 : Juntar los histogramas una vez ecualizados, por el peso
     # ya tengo los pesos de cada parte de los histos, ahora creo uno que tenga los pesos totales
     total_weights = np.zeros(256) # ya es float
     for i in range(0,256):
         local_sum = 0
         for n in range(0,N):
-            local_sum = local_sum + histo_weights_values[i][n]
+            local_sum = local_sum + histo_weights_values[n][i]
         total_weights[i] = local_sum
 
     # merge de histogramas
@@ -92,7 +93,7 @@ def split_extend_histo(histo, N):
         init = step*i+1
         if i == 0:
             step = step-1 # para que empieza en 0 la primera vez
-        end = i*step
+        end = (i+1)*step
         if i == N-1:
             end = 255 # el end de la ultima particion es directo 255
         # inicio una de las partes en 0's
@@ -100,6 +101,17 @@ def split_extend_histo(histo, N):
         for j in range(int(init), int(end+1)):
             # copio la parte que se encuentra dentro del rango
             histo_parts[i][j] = histo[j]
+    # begin debug code --------------------------------
+    histo_check = np.zeros(256, dtype = np.uint8)
+    for i in range(0,256):
+        histo_check[i] = sum([histo_parts[j][i] for j in range(0,N)])
+
+    print("original I-channel histo: \n")
+    print(histo)
+    print("equality histo: \n")
+    print(np.equal(histo_check, histo))
+    print(histo_parts)
+    # end debug code ----------------------------------
     return histo_parts
 
 # calcula en base al histograma, la funcion de peso para generar el histo_unif
@@ -111,7 +123,7 @@ def weight_function(piece_histo):
     first_found = False
     last_val = 0
     # para hallar el valor medio del intervalo
-    count = 0
+    count = 0.
     mean = 0.
     # busco el primer y el ultimo valor de la particion
     # siempre se cumple last_val > first_val
@@ -128,7 +140,16 @@ def weight_function(piece_histo):
     # saco la media, eso va a ser u_k
     u_k = (first_val + last_val)/2.
     # sigma_k
-    mean = mean/float(count)
+
+    if count < .1:
+        print("Count es cero!")
+        print("Histo: ")
+        print(piece_histo)
+        print("\n\nFirst val: %d" % (first_val))
+        print("\nEnd val: %d" % (last_val))
+        sys.exit(0)
+
+    mean = mean/count
     # sugerido por paper
     sigma_th = np.abs(128-mean)
     # cantidad de valores que cubre el intervalo
