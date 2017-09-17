@@ -100,15 +100,15 @@ def split_extend_histo(histo, N):
         init += step
         end += step
     # begin debug code --------------------------------
-    histo_check = np.zeros(256, dtype = np.uint)
-    for i in range(0,256):
-        histo_check[i] = sum([histo_parts[j][i] for j in range(0,N)])
-
-    print("original I-channel histo: \n")
-    print(histo)
-    print("equality histo: \n")
-    print(np.equal(histo_check, histo))
-    print(histo_parts)
+    # histo_check = np.zeros(256, dtype = np.uint)
+    # for i in range(0,256):
+    #     histo_check[i] = sum([histo_parts[j][i] for j in range(0,N)])
+    #
+    # print("original I-channel histo: \n")
+    # print(histo)
+    # print("equality histo: \n")
+    # print(np.equal(histo_check, histo))
+    # print(histo_parts)
     # end debug code ----------------------------------
     return histo_parts
 
