@@ -4,3 +4,5 @@ TODO:
           histograma con al cual se quiere llevar la imágen.
     - Una vez terminada la primera implementación (que toma alpha, beta y gamma
       como params), realizar la que los calcula según las métricas del paper.
+    - Quizas implementar algun tipo de objeto, para acceder a los canales más apropiadamente
+      que con [:,:,canal]
