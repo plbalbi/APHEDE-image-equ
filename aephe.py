@@ -1,5 +1,4 @@
 import numpy as np
-from scipy import ndimage
 import converter
 import images
 # AEPHE: Adaptative extended piecewise histogram equalisation
@@ -85,7 +84,7 @@ def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=1./3.):
 
 # Parte el histograma histo en N partes, y lo extiende según (6) en el paper
 def split_extend_histo(histo, N):
-    histo_parts = []
+    histo_parts = [None]*N
     step = np.floor(256./float(N))
     init = 0
     end = step
@@ -98,7 +97,7 @@ def split_extend_histo(histo, N):
             end = 255 # el end de la ultima particion es directo 255
         # inicio una de las partes en 0's
         histo_parts[i] = np.zeros(256)
-        for j in range(init, end+1):
+        for j in range(int(init), int(end+1)):
             # copio la parte que se encuentra dentro del rango
             histo_parts[i][j] = histo[j]
     return histo_parts
