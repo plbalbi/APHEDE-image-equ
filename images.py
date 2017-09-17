@@ -12,3 +12,8 @@ def get_histo(img):
             h[val] = h[val] + 1
     return h
 
+def HM(img, histo):
+    # podria ser in-place
+
+    return img
+
