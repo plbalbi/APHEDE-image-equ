@@ -5,7 +5,8 @@ import images
 # AEPHE: Adaptative extended piecewise histogram equalisation
 
 # Funcion principal
-def AEPHE(img, N):
+# por defecto les paso un tercio, para que no explote si me olvido de pasarle algo
+def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=1./3.):
     # 1 : Transformar la imagen a HSI, computar el histograma del canal I.
     img_hsi = converter.RGB2HSI(img)
     histo_i = images.get_histo(img_hsi[:,:,2])
