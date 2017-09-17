@@ -96,27 +96,25 @@ def split_extend_histo(histo, N):
     init = 0
     end = step
     for i in range(0,N):
-        init = step*i+1
-        if i == 0:
-            step = step-1 # para que empieza en 0 la primera vez
-        end = (i+1)*step
         if i == N-1:
-            end = 255 # el end de la ultima particion es directo 255
+            end = 256 # el end de la ultima particion es directo 255
         # inicio una de las partes en 0's
         histo_parts[i] = np.zeros(256)
-        for j in range(int(init), int(end+1)):
+        for j in range(int(init), int(end)):
             # copio la parte que se encuentra dentro del rango
             histo_parts[i][j] = histo[j]
+        init += step
+        end += step
     # begin debug code --------------------------------
-    histo_check = np.zeros(256, dtype = np.uint8)
-    for i in range(0,256):
-        histo_check[i] = sum([histo_parts[j][i] for j in range(0,N)])
-
-    print("original I-channel histo: \n")
-    print(histo)
-    print("equality histo: \n")
-    print(np.equal(histo_check, histo))
-    print(histo_parts)
+    # histo_check = np.zeros(256, dtype = np.uint)
+    # for i in range(0,256):
+    #     histo_check[i] = sum([histo_parts[j][i] for j in range(0,N)])
+    #
+    # print("original I-channel histo: \n")
+    # print(histo)
+    # print("equality histo: \n")
+    # print(np.equal(histo_check, histo))
+    # print(histo_parts)
     # end debug code ----------------------------------
     return histo_parts
 
