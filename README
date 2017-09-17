@@ -1,2 +1,6 @@
 TODO:
-    - TP
+    - Implementar Histogram Modification con la siguiente aridad:
+        - HM(img, histrograma) siendo img un canal de una imagen de n*m, y histrograma el
+          histograma con al cual se quiere llevar la imágen.
+    - Una vez terminada la primera implementación (que toma alpha, beta y gamma
+      como params), realizar la que los calcula según las métricas del paper.
