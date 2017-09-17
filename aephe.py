@@ -14,7 +14,10 @@ def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=1./3.):
     # Como primer approach, partimos en N partes de igual tamaño, disjuntas
     # extenderlas según (6).
     parts_histo = split_extend_histo(histo_i, N)
-        # previo_a_3 : TODO: Computar M_i y M_c según el paper, los cuales son los parámetros alpha y beta
+    histo_target = [None]*N # array vacio para guardar los target histo
+    w_k_functs = [None]*N # array vacio para guardar las funciones de peso
+        # previo_a_3 : TODO: Computar M_i y M_c según el paper, los cuales son
+        # los parámetros alpha y beta
     # 3 : Aplicar HE a cada histrograma particionado según el paper:
     for i in range(0,N): # para cada partición del histograma
 
@@ -25,6 +28,7 @@ def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=1./3.):
         # a : Crear el histograma uniforme según la función de peso
         # w_k sería la funcion peso para generar el histograma uniforme
         w_k = weight_function(parts_histo[i])
+        w_k_functs[i] = w_k # guardo la funcion de pesaje
         histo_unif = np.zeros(256) # esta en float
         for j in range(0,256):
             if parts_histo[i][j]>0.1: # si no es cero, quiere decir que el valor esta en
@@ -34,8 +38,18 @@ def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=1./3.):
                 # el valor debe ser 0, es decir, no esta en la parte,
                 # aplico weight_function
                 histo_unif[j] = w_k(j)
-                
+        # a.2 : calcular la matriz de suavidad D
+        D  = np.zeros((255,256))
+        for h in range(0,255):
+            D[h][h] = -1
+            D[h][h+1] = 1
+        D_T = np.transpose(D) # D transpuesta
+        ident = np.identity(256)
         # b : Resolver el sistema lineal, para hallar el target_histogram
+        term_1 = np.multiply((alpha + beta), ident) + np.dot(np.multiply(gamma, D_T), D)
+        term_1 = np.linalg.inv(term_1)
+        term_2 = np.multiply(alpha, parts_histo[i]) + np.multiply(beta, histo_unif)
+        histo_target[i] = np.dot(term1, term_2) # guardo el target histo
     # 4 : Juntar los histogramas una vez ecualizados, por el peso
     # 5 : Obtener el canal-I final, por HM
     # 6 : Convertir denuevo a RGB
