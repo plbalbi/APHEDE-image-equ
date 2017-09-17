@@ -10,12 +10,14 @@ def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=1./3.):
     # 1 : Transformar la imagen a HSI, computar el histograma del canal I.
     img_hsi = converter.RGB2HSI(img)
     histo_i = images.get_histo(img_hsi[:,:,2])
+    num_pixels = len(img)*len(img[0]) # cantidad de pixels
     # 2 : Particionar el histograma recien computado en N-partes, y a cada una de ellas,
     # Como primer approach, partimos en N partes de igual tamaño, disjuntas
     # extenderlas según (6).
     parts_histo = split_extend_histo(histo_i, N)
     histo_target = [None]*N # array vacio para guardar los target histo
     w_k_functs = [None]*N # array vacio para guardar las funciones de peso
+    histo_weights_values = [None]*N
         # previo_a_3 : TODO: Computar M_i y M_c según el paper, los cuales son
         # los parámetros alpha y beta
     # 3 : Aplicar HE a cada histrograma particionado según el paper:
@@ -30,6 +32,7 @@ def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=1./3.):
         w_k = weight_function(parts_histo[i])
         w_k_functs[i] = w_k # guardo la funcion de pesaje
         histo_unif = np.zeros(256) # esta en float
+        curr_weights = np.zeros(256)
         for j in range(0,256):
             if parts_histo[i][j]>0.1: # si no es cero, quiere decir que el valor esta en
             # esta parte del histo
@@ -38,6 +41,11 @@ def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=1./3.):
                 # el valor debe ser 0, es decir, no esta en la parte,
                 # aplico weight_function
                 histo_unif[j] = w_k(j)
+            # calculo un array que tiene para cada nivel i, w_k_i
+            # (weight_function of the piece-histogram) -> SE USA EN (4)
+            curr_weights[j] = w_k(j)
+        # guardo una copia de los pesos para la parte i del histo
+        histo_weights_values[i] = np.copy(curr_weights)
         # a.2 : calcular la matriz de suavidad D
         D  = np.zeros((255,256))
         for h in range(0,255):
@@ -48,10 +56,28 @@ def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=1./3.):
         # b : Resolver el sistema lineal, para hallar el target_histogram
         term_1 = np.multiply((alpha + beta), ident) + np.dot(np.multiply(gamma, D_T), D)
         term_1 = np.linalg.inv(term_1)
+        # aca normalizo parts_histo[i]
+        parts_histo[i] = np.divide(parts_histo[i],num_pixels)
         term_2 = np.multiply(alpha, parts_histo[i]) + np.multiply(beta, histo_unif)
         histo_target[i] = np.dot(term1, term_2) # guardo el target histo
     # 4 : Juntar los histogramas una vez ecualizados, por el peso
+    # ya tengo los pesos de cada parte de los histos, ahora creo uno que tenga los pesos totales
+    total_weights = np.zeros(256) # ya es float
+    for i in range(0,256):
+        local_sum = 0
+        for n in range(0,N):
+            local_sum = local_sum + histo_weights_values[i][n]
+        total_weights[i] = local_sum
+
+    # merge de histogramas
+    histo_equ = np.zeros(256)
+    for i in range(0,256):
+        # acumulo los histos con peso
+        histo_equ[i] = sum([ histo_weights_values[j][i] / total_weights[i] * histo_target[j][i]\
+                for j in range(0,N)])
     # 5 : Obtener el canal-I final, por HM
+    img_hsi[:,:,2] = images.HM(img_hsi[:,:,2], histo_equ)
+
     # 6 : Convertir denuevo a RGB
     img_rgb_equ = converter.HSI2RGB(img_hsi)
     return img_rgb_equ
