@@ -79,14 +79,12 @@ def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=1./3.):
     # 5 : Obtener el canal-I final, por HM
     # begin debug code --------------------------------
     plt.subplot(1,2,1)
-    plt.imshow(np.divide(img_hsi[:,:,2],255), cmap='gray')
+    plt.imshow(np.divide(img_hsi[:,:,2],255), cmap='gray', vmin=0, vmax=1)
 
     img_hsi[:,:,2] = images.HM(img_hsi[:,:,2], histo_equ)
 
-    print(img_hsi[:,:,2])
-
     plt.subplot(1,2,2)
-    plt.imshow(img_hsi[:,:,2], cmap='gray')
+    plt.imshow(img_hsi[:,:,2], cmap='gray', vmin=0, vmax=255)
     plt.show()
     # end debug code ----------------------------------
 
