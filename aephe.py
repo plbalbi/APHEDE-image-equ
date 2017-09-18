@@ -19,8 +19,10 @@ def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=1./3.):
     histo_target = [None]*N # array vacio para guardar los target histo
     w_k_functs = [None]*N # array vacio para guardar las funciones de peso
     histo_weights_values = [None]*N
-        # previo_a_3 : TODO: Computar M_i y M_c según el paper, los cuales son
-        # los parámetros alpha y beta
+    # previo_a_3 : TODO: Computar M_i y M_c según el paper, los cuales son
+    # los parámetros alpha y beta
+    M_i = dameM_i(histo_i)
+    M_c = dameM_c(img_hsi[:,:,2],histo_i)
     # 3 : Aplicar HE a cada histrograma particionado según el paper:
     for i in range(0,N): # para cada partición del histograma
 
@@ -173,3 +175,15 @@ def weight_function(piece_histo, limits):
     # tomo el maximo
     sigma_k = np.amax([w_d,sigma_th])
     return lambda i: np.exp(-((i - u_k)**2)/(2*(sigma_k**2)))
+
+
+def dameM_i(histo_i):
+    I_max = 255
+    sigma = I_max*0.2
+    M_low = 0.1 # ????
+    phi = lambda i: np.exp(-(i-I_max)**2/(2*sigma**2))
+    suma = sum([ histo_i[i] * phi(i) for i in range(256)])
+    return max(1/sum(histo_i)*suma,M_low)
+
+def dameM_c(imgi_i,histo_i):
+    return 0.5
