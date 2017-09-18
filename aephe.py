@@ -34,18 +34,24 @@ def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=1./3.):
         w_k_functs[i] = w_k # guardo la funcion de pesaje
         histo_unif = np.zeros(256) # esta en float
         curr_weights = np.zeros(256)
+        total = 0
         for j in range(0,256):
             part_range = range(int(parts_limits[i][0]), int(parts_limits[i][1]))
             if j in part_range: # si no es cero, quiere decir que el valor esta en
             # esta parte del histo
                 histo_unif[j] = 1
+                total += 1
             else:
                 # el valor debe ser 0, es decir, no esta en la parte,
                 # aplico weight_function
                 histo_unif[j] = w_k(j)
+                total += histo_unif[j]
             # calculo un array que tiene para cada nivel i, w_k_i
             # (weight_function of the piece-histogram) -> SE USA EN (4)
             curr_weights[j] = w_k(j)
+        # normalizo el histograma uniforme, para que describa una distribucion
+        for j in range(256):
+            histo_unif[j] /= total
         # guardo una copia de los pesos para la parte i del histo
         histo_weights_values[i] = np.copy(curr_weights)
         # a.2 : calcular la matriz de suavidad D
@@ -77,6 +83,11 @@ def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=1./3.):
         # acumulo los histos con peso
         histo_equ[i] = sum([ histo_weights_values[j][i] / total_weights[i] * histo_target[j][i]\
                 for j in range(0,N)])
+    # relativizar el histograma final, para que descria una distribucion
+    # TODO: esto de acá no debería tener que hacerse. debería dar ya una
+    # distribucion
+    total = sum(histo_equ)
+    histo_equ /= total
     # 5 : Obtener el canal-I final, por HM
     # begin debug code --------------------------------
     plt.subplot(1,2,1)
