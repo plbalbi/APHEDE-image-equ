@@ -15,7 +15,7 @@ def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=1./3.):
     # 2 : Particionar el histograma recien computado en N-partes, y a cada una de ellas,
     # Como primer approach, partimos en N partes de igual tamaño, disjuntas
     # extenderlas según (6).
-    parts_histo = split_extend_histo(histo_i, N)
+    parts_histo, parts_limits = split_extend_histo(histo_i, N)
     histo_target = [None]*N # array vacio para guardar los target histo
     w_k_functs = [None]*N # array vacio para guardar las funciones de peso
     histo_weights_values = [None]*N
@@ -35,7 +35,8 @@ def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=1./3.):
         histo_unif = np.zeros(256) # esta en float
         curr_weights = np.zeros(256)
         for j in range(0,256):
-            if parts_histo[i][j]>0.1: # si no es cero, quiere decir que el valor esta en
+            part_range = range(parts_limits[i][0], parts_limits[i][1])
+            if j in part_range: # si no es cero, quiere decir que el valor esta en
             # esta parte del histo
                 histo_unif[j] = 1
             else:
@@ -65,7 +66,7 @@ def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=1./3.):
     # ya tengo los pesos de cada parte de los histos, ahora creo uno que tenga los pesos totales
     total_weights = np.zeros(256) # ya es float
     for i in range(0,256):
-        local_sum = 0
+        local_sum = 0.
         for n in range(0,N):
             local_sum = local_sum + histo_weights_values[n][i]
         total_weights[i] = local_sum
@@ -156,6 +157,8 @@ def weight_function(piece_histo):
         print("\n\nFirst val: %d" % (first_val))
         print("\nEnd val: %d" % (last_val))
         sys.exit(0)
+    print("\n\nFirst val: %d" % (first_val))
+    print("\nEnd val: %d" % (last_val))
 
     mean = mean/count
     # sugerido por paper
