@@ -30,12 +30,12 @@ def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=1./3.):
 
         # a : Crear el histograma uniforme según la función de peso
         # w_k sería la funcion peso para generar el histograma uniforme
-        w_k = weight_function(parts_histo[i])
+        w_k = weight_function(parts_histo[i], parts_limits[i])
         w_k_functs[i] = w_k # guardo la funcion de pesaje
         histo_unif = np.zeros(256) # esta en float
         curr_weights = np.zeros(256)
         for j in range(0,256):
-            part_range = range(parts_limits[i][0], parts_limits[i][1])
+            part_range = range(int(parts_limits[i][0]), int(parts_limits[i][1]))
             if j in part_range: # si no es cero, quiere decir que el valor esta en
             # esta parte del histo
                 histo_unif[j] = 1
@@ -103,7 +103,7 @@ def split_extend_histo(histo, N):
     end = step
     for i in range(0,N):
         if i == N-1:
-            end = 256 # el end de la ultima particion es directo 255
+            end = 255 # el end de la ultima particion es directo 255
         # inicio una de las partes en 0's
         histo_parts[i] = np.zeros(256)
         for j in range(int(init), int(end)):
@@ -123,31 +123,23 @@ def split_extend_histo(histo, N):
     # print(np.equal(histo_check, histo))
     # print(histo_parts)
     # end debug code ----------------------------------
-    return (histo_parts,histo_limits)
+    return histo_parts,histo_limits
 
 # calcula en base al histograma, la funcion de peso para generar el histo_unif
 # adaptado a la particion
-def weight_function(piece_histo):
+def weight_function(piece_histo, limits):
     # esta parte esta en pag. 1014 del paper, secc 3.3
     # u_k
-    first_val = 0
-    first_found = False
-    last_val = 0
+    first_val = int(limits[0])
+    last_val = int(limits[1])
     # para hallar el valor medio del intervalo
     count = 0.
     mean = 0.
     # busco el primer y el ultimo valor de la particion
     # siempre se cumple last_val > first_val
-    for i in range(0,256):
-        # como se que son float, pero en relidad enteros, evaluo mayor a 0.1
-        if piece_histo[i] > 0.1:
-            if not first_found:
-                first_val = i
-                first_found = True
-            else:
-                last_val = i
-            count = count+1
-            mean = mean+i
+    for i in range(first_val,last_val+1):
+        count = count+1
+        mean = mean+i
     # saco la media, eso va a ser u_k
     u_k = (first_val + last_val)/2.
     # sigma_k
