@@ -98,7 +98,7 @@ def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=1./3.):
 def split_extend_histo(histo, N):
     histo_parts = [None]*N
     histo_limits = [None]*N
-    step = np.floor(256./float(N))
+    step = int(256/N)
     init = 0
     end = step
     for i in range(0,N):
