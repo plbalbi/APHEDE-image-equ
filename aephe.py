@@ -98,6 +98,7 @@ def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=1./3.):
 # Parte el histograma histo en N partes, y lo extiende según (6) en el paper
 def split_extend_histo(histo, N):
     histo_parts = [None]*N
+    histo_limits = [None]*N
     step = np.floor(256./float(N))
     init = 0
     end = step
@@ -109,6 +110,7 @@ def split_extend_histo(histo, N):
         for j in range(int(init), int(end)):
             # copio la parte que se encuentra dentro del rango
             histo_parts[i][j] = histo[j]
+        histo_limits[i] = (init,end)
         init += step
         end += step
     # begin debug code --------------------------------
@@ -122,7 +124,7 @@ def split_extend_histo(histo, N):
     # print(np.equal(histo_check, histo))
     # print(histo_parts)
     # end debug code ----------------------------------
-    return histo_parts
+    return (histo_parts,histo_limits)
 
 # calcula en base al histograma, la funcion de peso para generar el histo_unif
 # adaptado a la particion
