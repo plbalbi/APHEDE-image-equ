@@ -5,6 +5,8 @@ import images
 import splitter
 from matplotlib import pyplot as plt
 from scipy import signal
+import seaborn as sns
+sns.set_style("dark")
 
 # Funcion principal
 # AEPHE: Adaptative extended piecewise histogram equalisation
@@ -36,7 +38,7 @@ def AEPHE(img, N=3, alpha=None, beta=None, gamma=0,splits=None, acum_split = Fal
         plt.imshow(img)
 
     # 2 - 5: aplciar el método en el canal I
-    img_hsi[:,:,2] = AEPHE_aux(img_hsi[:,:,2], alpha, beta, gamma, splits)
+    img_hsi[:,:,2] = AEPHE_aux(img_hsi[:,:,2], alpha, beta, gamma, splits, trace_faults = True)
 
     # 6 : Convertir denuevo a RGB
     img_rgb_equ = converter.HSI2RGB(img_hsi)
@@ -54,7 +56,7 @@ def AEPHE(img, N=3, alpha=None, beta=None, gamma=0,splits=None, acum_split = Fal
 
     return img_rgb_equ
 
-def AEPHE_aux(img_i, alpha, beta, gamma, splits):
+def AEPHE_aux(img_i, alpha, beta, gamma, splits, trace_faults = False):
     histo_i = images.get_histo(img_i)
     # Si no se pasaron alpha,beta,gamma, calcular los Mi/Mc
     if alpha==None:
@@ -69,6 +71,9 @@ def AEPHE_aux(img_i, alpha, beta, gamma, splits):
 
     # 2 : Particionar el histograma recien computado en los splits
     parts_histo, parts_limits = splitter.custom_split_extend_histo(histo_i, splits)
+    # tracing error: me copio los histrogramas particionado y extendidos
+    if trace_faults:
+        trace_histos_original = np.copy(parts_histo)
     N = len(parts_limits)
     histo_target = [None]*N # array vacio para guardar los target histo
     w_k_functs = [None]*N # array vacio para guardar las funciones de peso
@@ -122,6 +127,18 @@ def AEPHE_aux(img_i, alpha, beta, gamma, splits):
         term_2 = np.multiply(alpha, parts_histo[i]) + np.multiply(beta, histo_unif)
         histo_target[i] = np.dot(term_1, term_2) # guardo el target histo
 
+    # trace error: Me copio los target_histo
+    if trace_faults:
+        trace_histos_target = np.copy(histo_target)
+        
+        for i in range(1, N+1):
+            plt.subplot(2,N+1,i)
+            plt.plot(range(0,256), trace_histos_original[i-1])
+            plt.subplot(2,N+1,N+1+i)
+            plt.plot(range(0,256), trace_histos_target[i-1])
+        plt.subplot(2,N+1,N+1)
+        plt.plot(range(0,256), histo_i)
+
     # 4 : Juntar los histogramas una vez ecualizados, por el peso
     # ya tengo los pesos de cada parte de los histos, ahora creo uno que tenga los pesos totales
     total_weights = np.zeros(256) # ya es float
@@ -140,11 +157,16 @@ def AEPHE_aux(img_i, alpha, beta, gamma, splits):
     # relativizar el histograma final, para que descria una distribucion
     # NOTE: !! esto de acá no debería tener que hacerse. debería dar ya una
     # distribucion
-    total = sum(histo_equ)
-    histo_equ /= total
+    # total = sum(histo_equ)
+    # histo_equ /= total
+    if trace_faults:
+        plt.subplot(2,N+1,2*N+2)
+        plt.plot(range(0,256), histo_equ)
+        plt.show()
 
     # 5 : Obtener el canal-I final, por HM
     img_i = images.HM(img_i, histo_equ)
+
     return img_i
 
 # calcula en base al histograma, la funcion de peso para generar el histo_unif

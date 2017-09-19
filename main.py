@@ -16,8 +16,8 @@ print("Reading image...")
 img = ndimage.imread(route)
 
 N = 3
-a = .5
-b = .5
+a = .6
+b = .3
 g = 0.
 splits=None
 out_name = None
@@ -36,9 +36,9 @@ if len(sys.argv) > 2:
         # g = float(sys.argv[5])
 
 print("Running AEPHE...")
-img_AEPHE = aephe.AEPHE(img, N, alpha = a, beta = b, gamma = g, splits = splits, plot=True)
+img_AEPHE = aephe.AEPHE(img, N, alpha = a, beta = b, gamma = g, splits = splits, plot=False)
 print("Running AEPHE with acum_split...")
-img_AEPHE_acum_splits = aephe.AEPHE(img, N, alpha = a, beta = b, gamma = g, splits = splits, plot=True, acum_split=True)
+img_AEPHE_acum_splits = aephe.AEPHE(img, N, alpha = a, beta = b, gamma = g, splits = splits, plot=False, acum_split=True)
 plt.clf()
 plt.subplot(1,3,1)
 plt.imshow(img)
