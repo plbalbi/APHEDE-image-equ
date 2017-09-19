@@ -195,8 +195,6 @@ def dameM_c(img_i,histo_i):
 
     S = [[-1,0,1],[-2,0,2],[-1,0,1]]
     S_t = [[-1,-2,-1],[0,0,0],[1,2,1]]
-    print(S)
-    print(S_t)
     G_x = signal.fftconvolve(S,img_i)
     G_y = signal.fftconvolve(S_t,img_i)
     # G = sobel_convolution(img_i)
@@ -212,7 +210,7 @@ def dameM_c(img_i,histo_i):
         for (x,y) in R[i]:
             I_xy = img_i[x][y]+1
             G = np.sqrt(G_x[x][y]**2+G_y[x][y]**2)
-            suma3 += G/I_ xy
+            suma3 += G/I_xy
         suma2 += suma3
 
     M_up = .9
