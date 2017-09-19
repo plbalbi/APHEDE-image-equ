@@ -97,14 +97,14 @@ def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=1./3.):
     histo_equ /= total
     # 5 : Obtener el canal-I final, por HM
     # begin debug code --------------------------------
-    plt.subplot(1,2,1)
-    plt.imshow(np.divide(img_hsi[:,:,2],255), cmap='gray', vmin=0, vmax=1)
+    # plt.subplot(1,2,1)
+    # plt.imshow(np.divide(img_hsi[:,:,2],255), cmap='gray', vmin=0, vmax=1)
 
     img_hsi[:,:,2] = images.HM(img_hsi[:,:,2], histo_equ)
 
-    plt.subplot(1,2,2)
-    plt.imshow(img_hsi[:,:,2], cmap='gray', vmin=0, vmax=255)
-    plt.show()
+    # plt.subplot(1,2,2)
+    # plt.imshow(img_hsi[:,:,2], cmap='gray', vmin=0, vmax=255)
+    # plt.show()
     # end debug code ----------------------------------
 
     # 6 : Convertir denuevo a RGB

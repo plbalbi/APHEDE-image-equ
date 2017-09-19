@@ -3,17 +3,31 @@ from scipy import ndimage
 from matplotlib import pyplot as plt
 import sys
 
+if len(sys.argv) < 2:
+    print("Error, faltan argumentos.")
+    print("%s imagen [N=3] [alpha=.6] [beta=.2] [gamma=0]" % (sys.argv[0]))
+    sys.exit(1)
 
 route = sys.argv[1]
 print("Reading image...")
-a = ndimage.imread(route)
+img = ndimage.imread(route)
 
+N = 3
+a = .6
+b = .3
+g = 0.
+
+if len(sys.argv) > 2:
+    N = int(sys.argv[2])
+    a = float(sys.argv[3])
+    b = float(sys.argv[4])
+    g = float(sys.argv[5])
 
 print("Running AEPHE...")
-b = aephe.AEPHE(a, 3 , alpha = .8, beta = .2, gamma = 0)
+img_AEPHE = aephe.AEPHE(img, N, alpha = a, beta = b, gamma = g)
 plt.clf()
 plt.subplot(1,2,1)
-plt.imshow(a)
+plt.imshow(img)
 plt.subplot(1,2,2)
-plt.imshow(b)
+plt.imshow(img_AEPHE)
 plt.show()
