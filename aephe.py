@@ -12,7 +12,20 @@ def AEPHE(img, N=3, alpha=None, beta=None, gamma=0,splits=None, acum_split = Fal
     # 1 : Transformar la imagen a HSI, computar el histograma del canal I.
     img_hsi = converter.RGB2HSI(img)
 
-    if plot and not(splits == None):
+    # 1.5 :
+    # Si me indica acum_split, tomo como cortes los intervalos en los cuales
+    # se acumula el 100/N%  de los valores
+    if acum_split:
+        splits = splitter.get_acum_intervals(img_hsi[:,:,2], N)
+    # Si todavía no hay splits, por defecto lo parto equitativamente
+    if splits==None:
+        splits = []
+        step = int(256/N)
+        end = step
+        for i in range(N-1):
+            splits.append(end)
+            end += step
+    if plot:
         # mostrar el histograma original y las particiones
         plt.subplot(2,2,1)
         histo_i = images.get_histo(img_hsi[:,:,2])
@@ -22,19 +35,13 @@ def AEPHE(img, N=3, alpha=None, beta=None, gamma=0,splits=None, acum_split = Fal
         plt.subplot(2,2,3)
         plt.imshow(img)
 
-
-    # 1.5 : Tomo como cortes, los intervalos en los cuales se acumula el 100/N%
-    # de los valores
-    if acum_split:
-        splits = splitter.get_acum_intervals(img_hsi[:,:,2], N)
-
     # 2 - 5: aplciar el método en el canal I
-    img_hsi[:,:,2] = AEPHE_aux(img_hsi[:,:,2], N, alpha, beta, gamma, splits)
+    img_hsi[:,:,2] = AEPHE_aux(img_hsi[:,:,2], alpha, beta, gamma, splits)
 
     # 6 : Convertir denuevo a RGB
     img_rgb_equ = converter.HSI2RGB(img_hsi)
 
-    if plot and not(splits == None):
+    if plot:
         # mostrar el histograma nuevo y las particiones
         plt.subplot(2,2,2)
         histo_i = images.get_histo(img_hsi[:,:,2])
@@ -47,7 +54,7 @@ def AEPHE(img, N=3, alpha=None, beta=None, gamma=0,splits=None, acum_split = Fal
 
     return img_rgb_equ
 
-def AEPHE_aux(img_i, N, alpha, beta, gamma, splits):
+def AEPHE_aux(img_i, alpha, beta, gamma, splits):
     histo_i = images.get_histo(img_i)
     # Si no se pasaron alpha,beta,gamma, calcular los Mi/Mc
     if alpha==None:
@@ -60,13 +67,9 @@ def AEPHE_aux(img_i, N, alpha, beta, gamma, splits):
         alpha = M_i/(M_i+M_c)
         beta = M_c/(M_i+M_c)
 
-    # 2 : Particionar el histograma recien computado en N-partes, y a cada una de ellas,
-    # Si no se pasan splits, partir en N iguales (por defecto N=3)
-    if splits==None:
-        parts_histo, parts_limits = splitter.split_extend_histo(histo_i, N)
-    else:
-        parts_histo, parts_limits = splitter.custom_split_extend_histo(histo_i, splits)
-        N = len(parts_limits)
+    # 2 : Particionar el histograma recien computado en los splits
+    parts_histo, parts_limits = splitter.custom_split_extend_histo(histo_i, splits)
+    N = len(parts_limits)
     histo_target = [None]*N # array vacio para guardar los target histo
     w_k_functs = [None]*N # array vacio para guardar las funciones de peso
     histo_weights_values = [None]*N
