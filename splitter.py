@@ -1,4 +1,5 @@
 import numpy as np
+import images as images
 from matplotlib import pyplot as plt
 
 # Parte el histograma histo en N partes iguales, y lo extiende según (6)
@@ -61,3 +62,30 @@ def custom_split_extend_histo(histo, splits,show=True):
         plt.plot(histo)
         plt.show()
     return histo_parts, histo_limits
+
+def get_acum_intervals(img, N):
+    # img debe ser el canal I de la imagen
+    # valores en [0, 255]
+    acum_percent = 1/N
+    img_size = len(img)*len(img[0])
+    # obtengo el histograma
+    histo = images.get_histo(img)
+    # acumulo
+    for i in range(1,256):
+        histo[i] = histo[i] + histo[i-1]
+    # normalizo
+    histo = np.divide(histo, img_size)
+    cuts = [None]*(N-1)
+    i = 1
+    j = 0
+    while i < N:
+        target_acum = acum_percent*i
+        while histo[j] < target_acum:
+            j+=1
+        cuts[i-1] = j
+        j+=1
+        i+=1
+    return cuts
+
+
+

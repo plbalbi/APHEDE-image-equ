@@ -8,9 +8,14 @@ from scipy import signal
 
 # Funcion principal
 # AEPHE: Adaptative extended piecewise histogram equalisation
-def AEPHE(img, N=3, alpha=None, beta=None, gamma=None,splits=None):
+def AEPHE(img, N=3, alpha=None, beta=None, gamma=None,splits=None, acum_split = False):
     # 1 : Transformar la imagen a HSI, computar el histograma del canal I.
     img_hsi = converter.RGB2HSI(img)
+
+    # 1.5 : Tomo como cortes, los intervalos en los cuales se acumula el 100/N%
+    # de los valores
+    if acum_split:
+        splits = splitter.get_acum_intervals(img_hsi[:,:,2], N)
 
     # 2 - 5: aplciar el método en el canal I
     img_hsi[:,:,2] = AEPHE_aux(img_hsi[:,:,2], N, alpha, beta, gamma, splits)
