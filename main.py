@@ -20,6 +20,7 @@ a = .5
 b = .5
 g = 0.
 splits=None
+out_name = None
 if len(sys.argv) > 2:
     if sys.argv[2]=='-s':
         splits = []
@@ -43,8 +44,9 @@ plt.subplot(1,3,1)
 plt.imshow(img)
 plt.subplot(1,3,2)
 plt.imshow(img_AEPHE)
-misc.imsave("out/%s_AEPHE.bmp" % (out_name), img_AEPHE)
 plt.subplot(1,3,3)
 plt.imshow(img_AEPHE_acum_splits)
-misc.imsave("out/%s_AEPHE_AS.bmp" % (out_name), img_AEPHE_acum_splits)
 plt.show()
+if out_name != None:
+    misc.imsave("out/%s_AEPHE.bmp" % (out_name), img_AEPHE)
+    misc.imsave("out/%s_AEPHE_AS.bmp" % (out_name), img_AEPHE_acum_splits)
