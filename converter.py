@@ -1,31 +1,36 @@
 import numpy as np
 import math
+import progressbar
 
 def RGB2HSI(rgb):
     hsi = np.empty((len(rgb),len(rgb[0]),3),dtype=np.uint8)
-    for f in range(len(rgb)):
-        for j in range(len(rgb[f])):
-            r = rgb[f][j][0]
-            g = rgb[f][j][1]
-            b = rgb[f][j][2]
-            [h,s,i] = pix_RGB2HSI(r,g,b)
-            hsi[f][j][0] = h
-            hsi[f][j][1] = s
-            hsi[f][j][2] = i
+    with progressbar.ProgressBar(max_value=len(rgb)) as bar:
+        for f in range(len(rgb)):
+            for j in range(len(rgb[f])):
+                r = rgb[f][j][0]
+                g = rgb[f][j][1]
+                b = rgb[f][j][2]
+                [h,s,i] = pix_RGB2HSI(r,g,b)
+                hsi[f][j][0] = h
+                hsi[f][j][1] = s
+                hsi[f][j][2] = i
+            bar.update(f)
     return hsi
 
 
 def HSI2RGB(hsi):
     rgb = np.empty(hsi.shape,dtype=np.uint8)
-    for f in range(len(hsi)):
-        for j in range(len(hsi[f])):
-            h = hsi[f][j][0]
-            s = hsi[f][j][1]
-            i = hsi[f][j][2]
-            [r,g,b] = pix_HSI2RGB(h,s,i)
-            rgb[f][j][0] = r
-            rgb[f][j][1] = g
-            rgb[f][j][2] = b
+    with progressbar.ProgressBar(max_value=len(rgb)) as bar:
+        for f in range(len(hsi)):
+            for j in range(len(hsi[f])):
+                h = hsi[f][j][0]
+                s = hsi[f][j][1]
+                i = hsi[f][j][2]
+                [r,g,b] = pix_HSI2RGB(h,s,i)
+                rgb[f][j][0] = r
+                rgb[f][j][1] = g
+                rgb[f][j][2] = b
+            bar.update(f)
     return rgb
 
 
