@@ -34,7 +34,7 @@ def split_extend_histo(histo, N):
     return histo_parts,histo_limits
 
 # Parte el histograma histo en los lugares pasados
-def custom_split_extend_histo(histo, splits,show=True):
+def custom_split_extend_histo(histo, splits,show=False):
     # verifico que los splits sean válidos
     for i in range(len(splits)-1):
         assert splits[i]<splits[i+1]
@@ -44,7 +44,7 @@ def custom_split_extend_histo(histo, splits,show=True):
     N = len(splits)+1
     histo_parts = [[] for l in range(N)]
     histo_limits = [[] for l in range(N)]
-    splits.append(256)
+    splits = splits+[256]
     init = 0
     for i in range(len(splits)):
         end = splits[i]
