@@ -46,7 +46,9 @@ def AEPHE_aux(img_i, N, alpha, beta, gamma, splits):
     # Si no se pasaron alpha,beta,gamma, calcular los Mi/Mc
     if alpha==None:
         M_i = dameM_i(histo_i)
+        M_i = np.amax([M_i, 0.05])
         M_c = dameM_c(img_i,histo_i)
+        M_c = np.amin([M_c, 1.])
         print('Mi:',M_i)
         print('Mc:',M_c)
         alpha = M_i/(M_i+M_c)
@@ -62,7 +64,6 @@ def AEPHE_aux(img_i, N, alpha, beta, gamma, splits):
     histo_target = [None]*N # array vacio para guardar los target histo
     w_k_functs = [None]*N # array vacio para guardar las funciones de peso
     histo_weights_values = [None]*N
-
     # 3 : Aplicar HE a cada histrograma particionado según el paper:
     for i in range(N): # para cada partición del histograma
 
