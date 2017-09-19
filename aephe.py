@@ -130,7 +130,7 @@ def AEPHE_aux(img_i, alpha, beta, gamma, splits, trace_faults = False):
     # trace error: Me copio los target_histo
     if trace_faults:
         trace_histos_target = np.copy(histo_target)
-        
+
         for i in range(1, N+1):
             plt.subplot(2,N+1,i)
             plt.plot(range(0,256), trace_histos_original[i-1])
@@ -157,8 +157,8 @@ def AEPHE_aux(img_i, alpha, beta, gamma, splits, trace_faults = False):
     # relativizar el histograma final, para que descria una distribucion
     # NOTE: !! esto de acá no debería tener que hacerse. debería dar ya una
     # distribucion
-    # total = sum(histo_equ)
-    # histo_equ /= total
+    total = sum(histo_equ)
+    histo_equ /= total
     if trace_faults:
         plt.subplot(2,N+1,2*N+2)
         plt.plot(range(0,256), histo_equ)

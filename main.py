@@ -16,8 +16,8 @@ print("Reading image...")
 img = ndimage.imread(route)
 
 N = 3
-a = .6
-b = .3
+a = .3
+b = .6
 g = 0.
 splits=None
 out_name = None
