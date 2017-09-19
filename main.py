@@ -13,8 +13,8 @@ print("Reading image...")
 img = ndimage.imread(route)
 
 N = 3
-a = .6
-b = .3
+a = .5
+b = .5
 g = 0.
 
 if len(sys.argv) > 2:
@@ -24,7 +24,7 @@ if len(sys.argv) > 2:
     g = float(sys.argv[5])
 
 print("Running AEPHE...")
-img_AEPHE = aephe.AEPHE(img, N, alpha = a, beta = b, gamma = g)
+img_AEPHE = aephe.AEPHE(img, N, alpha = a, beta = b, gamma = g, splits = [100,200])
 plt.clf()
 plt.subplot(1,2,1)
 plt.imshow(img)
