@@ -8,7 +8,7 @@ from scipy import signal
 
 # Funcion principal
 # por defecto les paso un tercio, para que no explote si me olvido de pasarle algo
-def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=1./3.):
+def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=0):
     # 1 : Transformar la imagen a HSI, computar el histograma del canal I.
     img_hsi = converter.RGB2HSI(img)
     histo_i = images.get_histo(img_hsi[:,:,2])
@@ -23,7 +23,9 @@ def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=1./3.):
     # previo_a_3 : TODO: Computar M_i y M_c según el paper, los cuales son
     # los parámetros alpha y beta
     M_i = dameM_i(histo_i)
+    M_i = np.amax([M_i, 0.05])
     M_c = dameM_c(img_hsi[:,:,2],histo_i)
+    M_c = np.amin([M_c, 1.])
     print('Mi:',M_i)
     print('Mc:',M_c)
     alpha = M_i/(M_i+M_c)
