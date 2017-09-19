@@ -33,7 +33,7 @@ def split_extend_histo(histo, N):
     return histo_parts,histo_limits
 
 # Parte el histograma histo en los lugares pasados
-def custom_split_extend_histo(histo, splits,show=False):
+def custom_split_extend_histo(histo, splits,show=True):
     # verifico que los splits sean válidos
     for i in range(len(splits)-1):
         assert splits[i]<splits[i+1]

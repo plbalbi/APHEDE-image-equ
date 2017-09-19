@@ -11,12 +11,21 @@ from scipy import signal
 def AEPHE(img, N=3, alpha=None, beta=None, gamma=None,splits=None):
     # 1 : Transformar la imagen a HSI, computar el histograma del canal I.
     img_hsi = converter.RGB2HSI(img)
-    histo_i = images.get_histo(img_hsi[:,:,2])
-    num_pixels = len(img)*len(img[0]) # cantidad de pixels
+
+    # 2 - 5: aplciar el método en el canal I
+    img_hsi[:,:,2] = AEPHE_aux(img_hsi[:,:,2], N, alpha, beta, gamma, splits)
+
+    # 6 : Convertir denuevo a RGB
+    img_rgb_equ = converter.HSI2RGB(img_hsi)
+
+    return img_rgb_equ
+
+def AEPHE_aux(img_i, N, alpha, beta, gamma, splits):
+    histo_i = images.get_histo(img_i)
     # Si no se pasaron alpha,beta,gamma, calcular los Mi/Mc
     if alpha==None:
         M_i = dameM_i(histo_i)
-        M_c = dameM_c(img_hsi[:,:,2],histo_i)
+        M_c = dameM_c(img_i,histo_i)
         print('Mi:',M_i)
         print('Mc:',M_c)
         alpha = M_i/(M_i+M_c)
@@ -78,7 +87,7 @@ def AEPHE(img, N=3, alpha=None, beta=None, gamma=None,splits=None):
         term_1 = np.multiply((alpha + beta), ident) + np.dot(np.multiply(gamma, D_T), D)
         term_1 = np.linalg.inv(term_1)
         # aca normalizo parts_histo[i]
-        parts_histo[i] = np.divide(parts_histo[i],num_pixels)
+        parts_histo[i] = np.divide(parts_histo[i],len(img_i)*len(img_i[0]))
         term_2 = np.multiply(alpha, parts_histo[i]) + np.multiply(beta, histo_unif)
         histo_target[i] = np.dot(term_1, term_2) # guardo el target histo
 
@@ -104,21 +113,8 @@ def AEPHE(img, N=3, alpha=None, beta=None, gamma=None,splits=None):
     histo_equ /= total
 
     # 5 : Obtener el canal-I final, por HM
-    # begin debug code --------------------------------
-    # plt.subplot(1,2,1)
-    # plt.imshow(np.divide(img_hsi[:,:,2],255), cmap='gray', vmin=0, vmax=1)
-
-    img_hsi[:,:,2] = images.HM(img_hsi[:,:,2], histo_equ)
-
-    # plt.subplot(1,2,2)
-    # plt.imshow(img_hsi[:,:,2], cmap='gray', vmin=0, vmax=255)
-    # plt.show()
-    # end debug code ----------------------------------
-
-    # 6 : Convertir denuevo a RGB
-    img_rgb_equ = converter.HSI2RGB(img_hsi)
-    return img_rgb_equ
-
+    img_i = images.HM(img_i, histo_equ)
+    return img_i
 
 # calcula en base al histograma, la funcion de peso para generar el histo_unif
 # adaptado a la particion
@@ -192,22 +188,3 @@ def dameM_c(img_i,histo_i):
 
     M_up = .9
     return suma1*suma2
-
-def sobel_convolution(img):
-    G_x = np.empty(img.shape)
-    G_y = np.empty(img.shape)
-    S = [[1,0,-1],[2,0,-2],[1,0,-1]]
-    S_t = [[1,2,1],[0,0,0],[-1,-0,-1]]
-    for x in range(1,len(img)-1):
-        gx = 0
-        gy = 0
-        for y in range(1,len(img[0])-1):
-            gx = -img[x-1][y-1]+img[x+1][y-1] + -2*img[x-1][y]+2*img[x+1][y] +-img[x-1][y+1]+img[x+1][y+1]
-            G_x[x][y] = gx
-            gy = -img[x-1][y-1]+img[x-1][y+1] + -2*img[x][y-1]+2*img[x][y+1] +-img[x+1][y-1]+img[x+1][y+1]
-            G_y[x][y] = gy
-    for x in range(len(img)):
-        for y in range(len(img[0])):
-            G_x[x][y] = np.sqrt(G_x[x][y]**2+G_x[x][y]**2)/(img[x][y]+1)
-
-    return G_x
