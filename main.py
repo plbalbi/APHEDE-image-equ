@@ -13,8 +13,8 @@ print("Reading image...")
 img = ndimage.imread(route)
 
 N = 3
-a = .6
-b = .3
+a = .5
+b = .5
 g = 0.
 
 if len(sys.argv) > 2:

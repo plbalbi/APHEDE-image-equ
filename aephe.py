@@ -2,34 +2,39 @@ import sys
 import numpy as np
 import converter
 import images
+import splitter
 from matplotlib import pyplot as plt
 from scipy import signal
-# AEPHE: Adaptative extended piecewise histogram equalisation
 
 # Funcion principal
-# por defecto les paso un tercio, para que no explote si me olvido de pasarle algo
-def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=1./3.):
+# AEPHE: Adaptative extended piecewise histogram equalisation
+def AEPHE(img, N=3, alpha=None, beta=None, gamma=None,splits=None):
     # 1 : Transformar la imagen a HSI, computar el histograma del canal I.
     img_hsi = converter.RGB2HSI(img)
     histo_i = images.get_histo(img_hsi[:,:,2])
     num_pixels = len(img)*len(img[0]) # cantidad de pixels
+    # Si no se pasaron alpha,beta,gamma, calcular los Mi/Mc
+    if alpha==None:
+        M_i = dameM_i(histo_i)
+        M_c = dameM_c(img_hsi[:,:,2],histo_i)
+        print('Mi:',M_i)
+        print('Mc:',M_c)
+        alpha = M_i/(M_i+M_c)
+        beta = M_c/(M_i+M_c)
+
     # 2 : Particionar el histograma recien computado en N-partes, y a cada una de ellas,
-    # Como primer approach, partimos en N partes de igual tamaño, disjuntas
-    # extenderlas según (6).
-    parts_histo, parts_limits = split_extend_histo(histo_i, N)
+    # Si no se pasan splits, partir en N iguales (por defecto N=3)
+    if splits==None:
+        parts_histo, parts_limits = splitter.split_extend_histo(histo_i, N)
+    else:
+        parts_histo, parts_limits = splitter.custom_split_extend_histo(histo_i, splits)
+        N = len(parts_limits)
     histo_target = [None]*N # array vacio para guardar los target histo
     w_k_functs = [None]*N # array vacio para guardar las funciones de peso
     histo_weights_values = [None]*N
-    # previo_a_3 : TODO: Computar M_i y M_c según el paper, los cuales son
-    # los parámetros alpha y beta
-    M_i = dameM_i(histo_i)
-    M_c = dameM_c(img_hsi[:,:,2],histo_i)
-    print('Mi:',M_i)
-    print('Mc:',M_c)
-    alpha = M_i/(M_i+M_c)
-    beta = M_c/(M_i+M_c)
+
     # 3 : Aplicar HE a cada histrograma particionado según el paper:
-    for i in range(0,N): # para cada partición del histograma
+    for i in range(N): # para cada partición del histograma
 
         # IMPORTANTE:
         # parts_histo[i] esta en float, pero sus valores son en int, hay que
@@ -68,6 +73,7 @@ def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=1./3.):
             D[h][h+1] = 1
         D_T = np.transpose(D) # D transpuesta
         ident = np.identity(256)
+        # TODO: si vamos a fijar gamma en 0 podríamos volar una parte de acá
         # b : Resolver el sistema lineal, para hallar el target_histogram
         term_1 = np.multiply((alpha + beta), ident) + np.dot(np.multiply(gamma, D_T), D)
         term_1 = np.linalg.inv(term_1)
@@ -75,6 +81,7 @@ def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=1./3.):
         parts_histo[i] = np.divide(parts_histo[i],num_pixels)
         term_2 = np.multiply(alpha, parts_histo[i]) + np.multiply(beta, histo_unif)
         histo_target[i] = np.dot(term_1, term_2) # guardo el target histo
+
     # 4 : Juntar los histogramas una vez ecualizados, por el peso
     # ya tengo los pesos de cada parte de los histos, ahora creo uno que tenga los pesos totales
     total_weights = np.zeros(256) # ya es float
@@ -91,10 +98,11 @@ def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=1./3.):
         histo_equ[i] = sum([ histo_weights_values[j][i] / total_weights[i] * histo_target[j][i]\
                 for j in range(0,N)])
     # relativizar el histograma final, para que descria una distribucion
-    # TODO: esto de acá no debería tener que hacerse. debería dar ya una
+    # NOTE: !! esto de acá no debería tener que hacerse. debería dar ya una
     # distribucion
     total = sum(histo_equ)
     histo_equ /= total
+
     # 5 : Obtener el canal-I final, por HM
     # begin debug code --------------------------------
     # plt.subplot(1,2,1)
@@ -111,37 +119,6 @@ def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=1./3.):
     img_rgb_equ = converter.HSI2RGB(img_hsi)
     return img_rgb_equ
 
-
-# Parte el histograma histo en N partes, y lo extiende según (6) en el paper
-def split_extend_histo(histo, N):
-    histo_parts = [None]*N
-    histo_limits = [None]*N
-    step = int(256/N)
-    init = 0
-    end = step
-    for i in range(0,N):
-        if i == N-1:
-            end = 255 # el end de la ultima particion es directo 255
-        # inicio una de las partes en 0's
-        histo_parts[i] = np.zeros(256)
-        for j in range(int(init), int(end)):
-            # copio la parte que se encuentra dentro del rango
-            histo_parts[i][j] = histo[j]
-        histo_limits[i] = (init,end)
-        init += step
-        end += step
-    # begin debug code --------------------------------
-    # histo_check = np.zeros(256, dtype = np.uint)
-    # for i in range(0,256):
-    #     histo_check[i] = sum([histo_parts[j][i] for j in range(0,N)])
-    #
-    # print("original I-channel histo: \n")
-    # print(histo)
-    # print("equality histo: \n")
-    # print(np.equal(histo_check, histo))
-    # print(histo_parts)
-    # end debug code ----------------------------------
-    return histo_parts,histo_limits
 
 # calcula en base al histograma, la funcion de peso para generar el histo_unif
 # adaptado a la particion
