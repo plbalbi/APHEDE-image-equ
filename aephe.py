@@ -3,6 +3,7 @@ import numpy as np
 import converter
 import images
 from matplotlib import pyplot as plt
+from scipy import signal
 # AEPHE: Adaptative extended piecewise histogram equalisation
 
 # Funcion principal
@@ -23,6 +24,10 @@ def AEPHE(img, N, alpha=1./3., beta=1./3., gamma=1./3.):
     # los parámetros alpha y beta
     M_i = dameM_i(histo_i)
     M_c = dameM_c(img_hsi[:,:,2],histo_i)
+    print('Mi:',M_i)
+    print('Mc:',M_c)
+    alpha = M_i/(M_i+M_c)
+    beta = M_c/(M_i+M_c)
     # 3 : Aplicar HE a cada histrograma particionado según el paper:
     for i in range(0,N): # para cada partición del histograma
 
@@ -164,8 +169,8 @@ def weight_function(piece_histo, limits):
         print("\n\nFirst val: %d" % (first_val))
         print("\nEnd val: %d" % (last_val))
         sys.exit(0)
-    print("\n\nFirst val: %d" % (first_val))
-    print("\nEnd val: %d" % (last_val))
+    # print("\n\nFirst val: %d" % (first_val))
+    # print("\nEnd val: %d" % (last_val))
 
     mean = mean/count
     # sugerido por paper
@@ -180,10 +185,54 @@ def weight_function(piece_histo, limits):
 def dameM_i(histo_i):
     I_max = 255
     sigma = I_max*0.2
-    M_low = 0.1 # ????
+    M_low = 0 # ????
     phi = lambda i: np.exp(-(i-I_max)**2/(2*sigma**2))
     suma = sum([ histo_i[i] * phi(i) for i in range(256)])
-    return max(1/sum(histo_i)*suma,M_low)
+    return max((1/sum(histo_i))*suma,M_low)
 
-def dameM_c(imgi_i,histo_i):
-    return 0.5
+def dameM_c(img_i,histo_i):
+    suma1 = 1/sum(histo_i)
+
+    S = [[-1,0,1],[-2,0,2],[-1,0,1]]
+    S_t = [[-1,-2,-1],[0,0,0],[1,2,1]]
+    print(S)
+    print(S_t)
+    G_x = signal.fftconvolve(S,img_i)
+    G_y = signal.fftconvolve(S_t,img_i)
+    # G = sobel_convolution(img_i)
+
+    R = [[] for l in range(256)]
+    for x in range(len(img_i)):
+        for y in range(len(img_i[0])):
+            R[img_i[x][y]].append((x,y))
+
+    suma2 = 0
+    for i in range(256):
+        suma3 = 0
+        for (x,y) in R[i]:
+            I_xy = img_i[x][y]+1
+            G = np.sqrt(G_x[x][y]**2+G_y[x][y]**2)
+            suma3 += G/I_ xy
+        suma2 += suma3
+
+    M_up = .9
+    return suma1*suma2
+
+def sobel_convolution(img):
+    G_x = np.empty(img.shape)
+    G_y = np.empty(img.shape)
+    S = [[1,0,-1],[2,0,-2],[1,0,-1]]
+    S_t = [[1,2,1],[0,0,0],[-1,-0,-1]]
+    for x in range(1,len(img)-1):
+        gx = 0
+        gy = 0
+        for y in range(1,len(img[0])-1):
+            gx = -img[x-1][y-1]+img[x+1][y-1] + -2*img[x-1][y]+2*img[x+1][y] +-img[x-1][y+1]+img[x+1][y+1]
+            G_x[x][y] = gx
+            gy = -img[x-1][y-1]+img[x-1][y+1] + -2*img[x][y-1]+2*img[x][y+1] +-img[x+1][y-1]+img[x+1][y+1]
+            G_y[x][y] = gy
+    for x in range(len(img)):
+        for y in range(len(img[0])):
+            G_x[x][y] = np.sqrt(G_x[x][y]**2+G_x[x][y]**2)/(img[x][y]+1)
+
+    return G_x
