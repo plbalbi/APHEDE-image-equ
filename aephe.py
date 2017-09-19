@@ -8,15 +8,36 @@ from scipy import signal
 
 # Funcion principal
 # AEPHE: Adaptative extended piecewise histogram equalisation
-def AEPHE(img, N=3, alpha=None, beta=None, gamma=None,splits=None):
+def AEPHE(img, N=3, alpha=None, beta=None, gamma=0,splits=None,plot=True):
     # 1 : Transformar la imagen a HSI, computar el histograma del canal I.
     img_hsi = converter.RGB2HSI(img)
+
+    if plot:
+        # mostrar el histograma original y las particiones
+        plt.subplot(2,2,1)
+        histo_i = images.get_histo(img_hsi[:,:,2])
+        for split in splits:
+            plt.axvline(x=split,color='r')
+        plt.plot(histo_i)
+        plt.subplot(2,2,3)
+        plt.imshow(img)
 
     # 2 - 5: aplciar el método en el canal I
     img_hsi[:,:,2] = AEPHE_aux(img_hsi[:,:,2], N, alpha, beta, gamma, splits)
 
     # 6 : Convertir denuevo a RGB
     img_rgb_equ = converter.HSI2RGB(img_hsi)
+
+    if plot:
+        # mostrar el histograma nuevo y las particiones
+        plt.subplot(2,2,2)
+        histo_i = images.get_histo(img_hsi[:,:,2])
+        for split in splits:
+            plt.axvline(x=split,color='r')
+        plt.plot(histo_i)
+        plt.subplot(2,2,4)
+        plt.imshow(img_rgb_equ)
+        plt.show()
 
     return img_rgb_equ
 
