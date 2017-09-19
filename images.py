@@ -1,4 +1,5 @@
 import numpy as np
+from matplotlib import pyplot as plt
 
 L = 256
 
@@ -12,7 +13,7 @@ def get_histo(img):
             h[val] = h[val] + 1
     return h
 
-def HM(img, histo):
+def HM(img, histo, plot=False):
     assert len(histo)==L
 
     # guardo las frecuencias absolutas de la imagen para calcular la acumulada
@@ -45,5 +46,15 @@ def HM(img, histo):
     for f in range(len(img)):
         for j in range(len(img[f])):
             img[f][j] = T_r[img[f][j]]
-
+    # se se desea, se imprime la dist obtenida
+    if plot:
+        plt.clf()
+        histo_nuevo = get_histo(img)/(len(img)*len(img[0]))
+        for i in range(1,256):
+            histo_nuevo[i]+=histo_nuevo[i-1]
+        plt.plot(histo,label='Buscado')
+        plt.plot(histo_nuevo,label='Obtenido')
+        plt.title('Histogramas acumulados')
+        plt.legend()
+        plt.show()
     return img
