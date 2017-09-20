@@ -1,6 +1,9 @@
 import numpy as np
 import images as images
 from matplotlib import pyplot as plt
+import seaborn as sns
+sns.set_style("dark")
+
 
 # Parte el histograma histo en N partes iguales, y lo extiende según (6)
 def split_extend_histo(histo, N):
@@ -59,8 +62,10 @@ def custom_split_extend_histo(histo, splits,show=False):
     if show:
         for i in range(len(histo_limits)-1):
             plt.axvline(x=histo_limits[i][1],color='r')
+        plt.xlim(0,255)
         plt.plot(histo)
-        plt.show()
+        plt.tick_params(labelsize = 10)
+        plt.savefig("informe/imgs/histo.pdf")
     return histo_parts, histo_limits
 
 def get_acum_intervals(img, N, verbose = None):
@@ -96,6 +101,4 @@ def get_acum_intervals(img, N, verbose = None):
         j+=1
         i+=1
     return cuts
-
-
 
