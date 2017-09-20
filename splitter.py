@@ -63,10 +63,10 @@ def custom_split_extend_histo(histo, splits,show=False):
         plt.show()
     return histo_parts, histo_limits
 
-def get_acum_intervals(img, N):
+def get_acum_intervals(img, N, verbose = None):
+    ## verbose debe tener los porcentajes correspondientes a cada intervalo [n valores]
     # img debe ser el canal I de la imagen
     # valores en [0, 255]
-    acum_percent = 1/N
     img_size = len(img)*len(img[0])
     # obtengo el histograma
     histo = images.get_histo(img)
@@ -76,13 +76,23 @@ def get_acum_intervals(img, N):
     # normalizo
     histo = np.divide(histo, img_size)
     cuts = [None]*(N-1)
-    i = 1
+    ## Si tomo intervalos de 1/N
+    # acumulo verbose
+    if not verbose == None:
+        for i in range(1,len(verbose)):
+            verbose[i]+=verbose[i-1]
+    acum_percent = 1/N
+    i = 0
     j = 0
-    while i < N:
-        target_acum = acum_percent*i
+    while i < (N-1):
+        if verbose == None:
+            target_acum = acum_percent*(i+1)
+        else:
+            target_acum = verbose[i]
+
         while histo[j] < target_acum:
             j+=1
-        cuts[i-1] = j
+        cuts[i] = j
         j+=1
         i+=1
     return cuts

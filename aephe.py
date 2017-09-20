@@ -18,7 +18,7 @@ def AEPHE(img, N=3, alpha=None, beta=None, gamma=0,splits=None, acum_split = Fal
     # Si me indica acum_split, tomo como cortes los intervalos en los cuales
     # se acumula el 100/N%  de los valores
     if acum_split:
-        splits = splitter.get_acum_intervals(img_hsi[:,:,2], N)
+        splits = splitter.get_acum_intervals(img_hsi[:,:,2], N,verbose = [.6,.2,.2])
     # Si todavía no hay splits, por defecto lo parto equitativamente
     if splits==None:
         splits = []
