@@ -1,12 +1,8 @@
-TODO:
-    - Una vez terminada la primera implementación (que toma alpha, beta y gamma
-      como params), realizar la que los calcula según las métricas del paper.
-    - Quizas implementar algun tipo de objeto, para acceder a los canales más apropiadamente
-      que con [:,:,canal]
-    - Testear si el split de histograma lo hace bien, es decir, si la suma de
-    los N da el original, tenego mis dudas...
+Para ejecutar el programa correr:
 
-DONE:
-    - Implementar Histogram Modification con la siguiente aridad:
-        - HM(img, histrograma) siendo img un canal de una imagen de n*m, y histrograma el
-          histograma con al cual se quiere llevar la imágen.
+python main.py imagen-entrada imagen-salida
+
+--------------------------------------------
+
+Balbi, Pablo Luis
+Pazos Méndez, Nicolás Javier
