@@ -10,7 +10,7 @@ sns.set_style("dark")
 
 # Funcion principal
 # AEPHE: Adaptative extended piecewise histogram equalisation
-def AEPHE(img, N=3, alpha=None, beta=None, gamma=0,splits=None, acum_split = False, plot=True):
+def AEPHE(img, N=3, alpha=None, beta=None, gamma=0,splits=None, acum_split = False):
     # 1 : Transformar la imagen a HSI, computar el histograma del canal I.
     img_hsi = converter.RGB2HSI(img)
 
@@ -27,32 +27,11 @@ def AEPHE(img, N=3, alpha=None, beta=None, gamma=0,splits=None, acum_split = Fal
         for i in range(N-1):
             splits.append(end)
             end += step
-    if plot:
-        # mostrar el histograma original y las particiones
-        plt.subplot(2,2,1)
-        histo_i = images.get_histo(img_hsi[:,:,2])
-        for split in splits:
-            plt.axvline(x=split,color='r')
-        plt.plot(histo_i)
-        plt.subplot(2,2,3)
-        plt.imshow(img)
-
     # 2 - 5: aplciar el método en el canal I
     img_hsi[:,:,2] = AEPHE_aux(img_hsi[:,:,2], alpha, beta, gamma, splits)
 
     # 6 : Convertir denuevo a RGB
     img_rgb_equ = converter.HSI2RGB(img_hsi)
-
-    if plot:
-        # mostrar el histograma nuevo y las particiones
-        plt.subplot(2,2,2)
-        histo_i = images.get_histo(img_hsi[:,:,2])
-        for split in splits:
-            plt.axvline(x=split,color='r')
-        plt.plot(histo_i)
-        plt.subplot(2,2,4)
-        plt.imshow(img_rgb_equ)
-        plt.show()
 
     return img_rgb_equ
 
@@ -72,8 +51,7 @@ def AEPHE_aux(img_i, alpha, beta, gamma, splits, trace_faults = False):
     # 2 : Particionar el histograma recien computado en los splits
     parts_histo, parts_limits = splitter.custom_split_extend_histo(histo_i, splits)
     # tracing error: me copio los histrogramas particionado y extendidos
-    if trace_faults:
-        trace_histos_original = np.copy(parts_histo)
+
     N = len(parts_limits)
     histo_target = [None]*N # array vacio para guardar los target histo
     w_k_functs = [None]*N # array vacio para guardar las funciones de peso
@@ -118,7 +96,6 @@ def AEPHE_aux(img_i, alpha, beta, gamma, splits, trace_faults = False):
             D[h][h+1] = 1
         D_T = np.transpose(D) # D transpuesta
         ident = np.identity(256)
-        # TODO: si vamos a fijar gamma en 0 podríamos volar una parte de acá
         # b : Resolver el sistema lineal, para hallar el target_histogram
         term_1 = np.multiply((alpha + beta), ident) + np.dot(np.multiply(gamma, D_T), D)
         term_1 = np.linalg.inv(term_1)
@@ -126,18 +103,6 @@ def AEPHE_aux(img_i, alpha, beta, gamma, splits, trace_faults = False):
         parts_histo[i] = np.divide(parts_histo[i],len(img_i)*len(img_i[0]))
         term_2 = np.multiply(alpha, parts_histo[i]) + np.multiply(beta, histo_unif)
         histo_target[i] = np.dot(term_1, term_2) # guardo el target histo
-
-    # trace error: Me copio los target_histo
-    if trace_faults:
-        trace_histos_target = np.copy(histo_target)
-
-        for i in range(1, N+1):
-            plt.subplot(2,N+1,i)
-            plt.plot(range(0,256), trace_histos_original[i-1])
-            plt.subplot(2,N+1,N+1+i)
-            plt.plot(range(0,256), trace_histos_target[i-1])
-        plt.subplot(2,N+1,N+1)
-        plt.plot(range(0,256), histo_i)
 
     # 4 : Juntar los histogramas una vez ecualizados, por el peso
     # ya tengo los pesos de cada parte de los histos, ahora creo uno que tenga los pesos totales
@@ -155,14 +120,8 @@ def AEPHE_aux(img_i, alpha, beta, gamma, splits, trace_faults = False):
         histo_equ[i] = sum([ histo_weights_values[j][i] / total_weights[i] * histo_target[j][i]\
                 for j in range(0,N)])
     # relativizar el histograma final, para que descria una distribucion
-    # NOTE: !! esto de acá no debería tener que hacerse. debería dar ya una
-    # distribucion
     total = sum(histo_equ)
     histo_equ /= total
-    if trace_faults:
-        plt.subplot(2,N+1,2*N+2)
-        plt.plot(range(0,256), histo_equ)
-        plt.show()
 
     # 5 : Obtener el canal-I final, por HM
     img_i = images.HM(img_i, histo_equ)
@@ -195,8 +154,6 @@ def weight_function(piece_histo, limits):
         print("\n\nFirst val: %d" % (first_val))
         print("\nEnd val: %d" % (last_val))
         sys.exit(0)
-    # print("\n\nFirst val: %d" % (first_val))
-    # print("\nEnd val: %d" % (last_val))
 
     mean = mean/count
     # sugerido por paper
@@ -211,7 +168,7 @@ def weight_function(piece_histo, limits):
 def dameM_i(histo_i):
     I_max = 255
     sigma = I_max*0.2
-    M_low = 0 # ????
+    M_low = 0
     phi = lambda i: np.exp(-(i-I_max)**2/(2*sigma**2))
     suma = sum([ histo_i[i] * phi(i) for i in range(256)])
     return max((1/sum(histo_i))*suma,M_low)
@@ -223,7 +180,6 @@ def dameM_c(img_i,histo_i):
     S_t = [[-1,-2,-1],[0,0,0],[1,2,1]]
     G_x = signal.fftconvolve(S,img_i)
     G_y = signal.fftconvolve(S_t,img_i)
-    # G = sobel_convolution(img_i)
 
     R = [[] for l in range(256)]
     for x in range(len(img_i)):

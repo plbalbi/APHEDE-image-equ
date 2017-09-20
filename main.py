@@ -21,7 +21,9 @@ splits=None
 out_name = sys.argv[2]
 
 print("Running AEPHE...")
-img_AEPHE_acum_splits = aephe.AEPHE(img, N, alpha = a, beta = b, gamma = g, splits = splits, plot=False, acum_split=True)
+img_AEPHE_acum_splits = aephe.AEPHE(img, N, alpha = a, beta = b, gamma = g, splits = splits, acum_split=True)
+
+# muestro comparación con imagen original
 plt.clf()
 plt.subplot(1,2,1)
 plt.title('Original')
@@ -30,5 +32,7 @@ plt.subplot(1,2,2)
 plt.imshow(img_AEPHE_acum_splits)
 plt.title('Procesada AEPHE')
 plt.show()
+
+# guardo la salida en out/
 if out_name != None:
     misc.imsave("out/%s_AEPHE.bmp" % (out_name), img_AEPHE_acum_splits)
