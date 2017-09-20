@@ -18,7 +18,7 @@ def AEPHE(img, N=3, alpha=None, beta=None, gamma=0,splits=None, acum_split = Fal
     # Si me indica acum_split, tomo como cortes los intervalos en los cuales
     # se acumula el 100/N%  de los valores
     if acum_split:
-        splits = splitter.get_acum_intervals(img_hsi[:,:,2], N,verbose = [.6,.2,.2])
+        splits = splitter.get_acum_intervals(img_hsi[:,:,2], N,verbose = [.7,.1,.2])
     # Si todavía no hay splits, por defecto lo parto equitativamente
     if splits==None:
         splits = []
@@ -38,7 +38,7 @@ def AEPHE(img, N=3, alpha=None, beta=None, gamma=0,splits=None, acum_split = Fal
         plt.imshow(img)
 
     # 2 - 5: aplciar el método en el canal I
-    img_hsi[:,:,2] = AEPHE_aux(img_hsi[:,:,2], alpha, beta, gamma, splits, trace_faults = True)
+    img_hsi[:,:,2] = AEPHE_aux(img_hsi[:,:,2], alpha, beta, gamma, splits)
 
     # 6 : Convertir denuevo a RGB
     img_rgb_equ = converter.HSI2RGB(img_hsi)
